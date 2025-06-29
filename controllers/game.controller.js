@@ -1,51 +1,77 @@
+// controllers/game.controller.js
 
 const Game = require('../models/Game');
 
+/**
+ * Создать новую игру
+ */
 exports.createGame = async (req, res) => {
     try {
         const game = await Game.create(req.body);
-        res.status(201).json(game);
+        return res.status(201).json(game);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
 
-exports.getAllGames = async (_, res) => {
+/**
+ * Получить список всех игр
+ */
+exports.getAllGames = async (req, res) => {
     try {
         const games = await Game.findAll();
-        res.json(games);
+        return res.json(games);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 };
 
+/**
+ * Получить одну игру по ID
+ */
 exports.getGameById = async (req, res) => {
     try {
         const game = await Game.findByPk(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
-        res.json(game);
+        if (!game) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
+        return res.json(game);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 };
 
+/**
+ * Обновить игру по ID
+ */
 exports.updateGame = async (req, res) => {
     try {
-        const [updated] = await Game.update(req.body, { where: { id: req.params.id } });
-        if (!updated) return res.status(404).json({ error: 'Game not found' });
-        const game = await Game.findByPk(req.params.id);
-        res.json(game);
+        const [updated] = await Game.update(req.body, {
+            where: { id: req.params.id }
+        });
+        if (!updated) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
+        const updatedGame = await Game.findByPk(req.params.id);
+        return res.json(updatedGame);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: err.message });
     }
 };
 
+/**
+ * Удалить игру по ID
+ */
 exports.deleteGame = async (req, res) => {
     try {
-        const deleted = await Game.destroy({ where: { id: req.params.id } });
-        if (!deleted) return res.status(404).json({ error: 'Game not found' });
-        res.json({ message: 'Game deleted' });
+        const deleted = await Game.destroy({
+            where: { id: req.params.id }
+        });
+        if (!deleted) {
+            return res.status(404).json({ error: 'Game not found' });
+        }
+        return res.json({ message: 'Game deleted' });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 };

@@ -1,5 +1,7 @@
+
+const express = require('express');
 const { body, validationResult } = require('express-validator');
-const router = require('express').Router();
+const authMiddleware = require('../middleware/auth.middleware');
 const {
     createGame,
     getAllGames,
@@ -8,28 +10,23 @@ const {
     deleteGame
 } = require('../controllers/game.controller');
 
-// Middleware для проверки входящих данных
+const router = express.Router();
+
 const validateGame = [
-    body('title').notEmpty().withMessage('Title обязательно'),
-    body('developer').notEmpty().withMessage('Developer обязательно'),
-    body('price')
-        .isFloat({ min: 0 })
-        .withMessage('Price должно быть числом ≥ 0'),
+    body('title').notEmpty().withMessage('Поле "title" обязательно'),
+    body('developer').notEmpty().withMessage('Поле "developer" обязательно'),
+    body('price').isFloat({ min: 0 }).withMessage('Поле "price" должно быть числом >= 0'),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        }
+        if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
         next();
     }
 ];
 
-router.get('/', getAllGames);
-router.get('/:id', getGameById);
-
-// защищённые маршруты
-router.post('/', validateGame, createGame);
-router.put('/:id', validateGame, updateGame);
-router.delete('/:id', deleteGame);
+router.get('/',        getAllGames);
+router.get('/:id',     getGameById);
+router.post('/',       authMiddleware, validateGame, createGame);
+router.put('/:id',     authMiddleware, validateGame, updateGame);
+router.delete('/:id',  authMiddleware, deleteGame);
 
 module.exports = router;
