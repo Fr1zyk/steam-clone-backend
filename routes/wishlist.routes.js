@@ -1,13 +1,11 @@
 // routes/wishlist.routes.js
-const Router = require('express').Router;
+const router = require('express').Router();
+const auth   = require('../middleware/auth.middleware');
 const {
+    getMyWishlist,
     addToWishlist,
-    getWishlist,
     removeFromWishlist
 } = require('../controllers/wishlist.controller');
-const auth = require('../middleware/auth.middleware');
-
-const router = new Router();
 
 /**
  * @swagger
@@ -20,21 +18,27 @@ const router = new Router();
  * @swagger
  * /api/wishlist:
  *   get:
- *     summary: Получить свой список желаемого
+ *     summary: Список желаемого
  *     tags: [Wishlist]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Массив игр в списке желаемого
+ *         description: Массив элементов
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Wishlist'
  */
-router.get('/', auth, getWishlist);
+router.get('/', auth, getMyWishlist);
 
 /**
  * @swagger
  * /api/wishlist:
  *   post:
- *     summary: Добавить игру в список желаемого
+ *     summary: Добавить игру в Wishlist
  *     tags: [Wishlist]
  *     security:
  *       - bearerAuth: []
@@ -43,15 +47,14 @@ router.get('/', auth, getWishlist);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - gameId
- *             properties:
- *               gameId:
- *                 type: integer
+ *             $ref: '#/components/schemas/WishlistInput'
  *     responses:
  *       201:
- *         description: Добавлено
+ *         description: Элемент добавлен
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Wishlist'
  */
 router.post('/', auth, addToWishlist);
 
@@ -59,7 +62,7 @@ router.post('/', auth, addToWishlist);
  * @swagger
  * /api/wishlist/{id}:
  *   delete:
- *     summary: Убрать игру из списка желаемого
+ *     summary: Удалить элемент из Wishlist
  *     tags: [Wishlist]
  *     security:
  *       - bearerAuth: []
@@ -69,10 +72,9 @@ router.post('/', auth, addToWishlist);
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID записи в списке желаемого
  *     responses:
- *       204:
- *         description: Удалено
+ *       200:
+ *         description: Элемент удалён
  */
 router.delete('/:id', auth, removeFromWishlist);
 

@@ -1,7 +1,9 @@
+// controllers/purchase.controller.js
+const { Purchase, Game } = require('../models');
 
-const Purchase = require('../models/Purchase');
-const Game     = require('../models/Game');
-
+/**
+ * GET /api/purchases
+ */
 exports.getMyPurchases = async (req, res, next) => {
     try {
         const list = await Purchase.findAll({
@@ -14,22 +16,16 @@ exports.getMyPurchases = async (req, res, next) => {
     }
 };
 
+/**
+ * POST /api/purchases
+ */
 exports.buyGame = async (req, res, next) => {
     try {
         const { gameId } = req.body;
-        if (!gameId) return res.status(400).json({ error: 'gameId required' });
-
-        // Проверяем, что такой purchase ещё нет
-        const exists = await Purchase.findOne({
-            where: { userId: req.user.id, gameId }
-        });
+        const exists = await Purchase.findOne({ where: { userId: req.user.id, gameId } });
         if (exists) return res.status(409).json({ error: 'Already purchased' });
-
-        const purchase = await Purchase.create({
-            userId: req.user.id,
-            gameId
-        });
-        res.status(201).json(purchase);
+        const p = await Purchase.create({ userId: req.user.id, gameId });
+        res.status(201).json(p);
     } catch (err) {
         next(err);
     }

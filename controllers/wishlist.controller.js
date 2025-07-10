@@ -1,49 +1,45 @@
-const Wishlist = require('../models/Wishlist');
-const Game     = require('../models/Game');
+// controllers/wishlist.controller.js
+const { Wishlist, Game } = require('../models');
 
+/**
+ * GET /api/wishlist
+ */
 exports.getMyWishlist = async (req, res, next) => {
     try {
-        const items = await Wishlist.findAll({
+        const list = await Wishlist.findAll({
             where: { userId: req.user.id },
-            include: [{ model: Game, attributes: ['id','title','price','developer'] }],
-            order: [['createdAt','DESC']]
+            include: [{ model: Game, attributes: ['id','title','price'] }]
         });
-        res.json(items);
+        res.json(list);
     } catch (err) {
         next(err);
     }
 };
 
+/**
+ * POST /api/wishlist
+ */
 exports.addToWishlist = async (req, res, next) => {
     try {
         const { gameId } = req.body;
-        if (!gameId) return res.status(400).json({ error: 'gameId required' });
-
-        // не дублируем
-        const exists = await Wishlist.findOne({
-            where: { userId: req.user.id, gameId }
-        });
+        const exists = await Wishlist.findOne({ where: { userId: req.user.id, gameId } });
         if (exists) return res.status(409).json({ error: 'Already in wishlist' });
-
-        const entry = await Wishlist.create({
-            userId: req.user.id,
-            gameId
-        });
-        res.status(201).json(entry);
+        const w = await Wishlist.create({ userId: req.user.id, gameId });
+        res.status(201).json(w);
     } catch (err) {
         next(err);
     }
 };
 
+/**
+ * DELETE /api/wishlist/:id
+ */
 exports.removeFromWishlist = async (req, res, next) => {
     try {
-        const id = parseInt(req.params.id, 10);
-        const entry = await Wishlist.findByPk(id);
-        if (!entry || entry.userId !== req.user.id) {
-            return res.status(404).json({ error: 'Wishlist item not found' });
-        }
-        await entry.destroy();
-        res.json({ success: true });
+        const w = await Wishlist.findByPk(req.params.id);
+        if (!w || w.userId !== req.user.id) return res.status(404).json({ error: 'Not found' });
+        await w.destroy();
+        res.json({ message: 'Removed' });
     } catch (err) {
         next(err);
     }

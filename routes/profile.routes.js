@@ -1,14 +1,16 @@
 // routes/profile.routes.js
-const Router = require('express').Router;
+const { Router } = require('express');
+const auth       = require('../middleware/auth.middleware');
+const multer     = require('multer');
+const upload     = multer({ dest: 'uploads/' });
 const {
     getProfile,
     updateProfile,
     getPurchaseHistory,
     getFriends
 } = require('../controllers/profile.controller');
-const auth = require('../middleware/auth.middleware');
 
-const router = new Router();
+const router = Router();
 
 /**
  * @swagger
@@ -19,36 +21,19 @@ const router = new Router();
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     Profile:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *         email:
- *           type: string
- *         nickname:
- *           type: string
- *         avatarUrl:
- *           type: string
- */
-
-/**
- * @swagger
  * /api/profile:
  *   get:
- *     summary: Получить свой профиль
+ *     summary: Получить профиль текущего пользователя
  *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Инфо о профиле
+ *         description: Объект пользователя
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Profile'
+ *               $ref: '#/components/schemas/User'
  */
 router.get('/', auth, getProfile);
 
@@ -56,7 +41,7 @@ router.get('/', auth, getProfile);
  * @swagger
  * /api/profile:
  *   put:
- *     summary: Обновить свой профиль
+ *     summary: Обновить nickname и/или аватар
  *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
@@ -78,21 +63,27 @@ router.get('/', auth, getProfile);
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Profile'
+ *               $ref: '#/components/schemas/User'
  */
-router.put('/', auth, updateProfile);
+router.put('/', auth, upload.single('avatar'), updateProfile);
 
 /**
  * @swagger
  * /api/profile/purchases:
  *   get:
- *     summary: История покупок
+ *     summary: Получить историю покупок пользователя
  *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Список покупок
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Purchase'
  */
 router.get('/purchases', auth, getPurchaseHistory);
 
@@ -100,13 +91,19 @@ router.get('/purchases', auth, getPurchaseHistory);
  * @swagger
  * /api/profile/friends:
  *   get:
- *     summary: Список друзей
+ *     summary: Список друзей пользователя
  *     tags: [Profile]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Массив друзей
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
  */
 router.get('/friends', auth, getFriends);
 

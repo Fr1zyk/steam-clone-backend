@@ -1,22 +1,15 @@
-
-require('dotenv').config();
+// middleware/auth.middleware.js
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Отсутствует Authorization header' });
-    }
-
-    const [scheme, token] = authHeader.split(' ');
-    if (scheme !== 'Bearer' || !token) {
-        return res.status(401).json({ error: 'Неверный формат Authorization header' });
-    }
-
+    const h = req.headers.authorization;
+    if (!h) return res.status(401).json({ error: 'No token' });
+    const token = h.split(' ')[1];
     try {
-        req.user = jwt.verify(token, process.env.JWT_SECRET);
+        const p = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = p;
         next();
     } catch {
-        return res.status(403).json({ error: 'Невалидный или просроченный токен' });
+        res.status(403).json({ error: 'Invalid token' });
     }
 };

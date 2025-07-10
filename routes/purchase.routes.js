@@ -1,54 +1,67 @@
 // routes/purchase.routes.js
-const Router = require('express').Router;
-const { createPurchase, getUserPurchases } = require('../controllers/purchase.controller');
+const router = require('express').Router();
 const auth = require('../middleware/auth.middleware');
-
-const router = new Router();
+const {
+    getMyPurchases,
+    buyGame
+} = require('../controllers/purchase.controller');
 
 /**
  * @swagger
  * tags:
  *   name: Purchases
- *   description: Покупки игр
+ *   description: История покупок
  */
 
 /**
  * @swagger
  * /api/purchases:
+ *   get:
+ *     summary: Получить все покупки текущего пользователя
+ *     tags: [Purchases]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Список покупок
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Purchase'
+ */
+router.get('/', auth, getMyPurchases);
+
+/**
+ * @swagger
+ * /api/purchases:
  *   post:
- *     summary: Совершить покупку
+ *     summary: Купить игру
  *     tags: [Purchases]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
+ *       description: Идентификатор игры для покупки
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - gameId
+ *             required: [gameId]
  *             properties:
  *               gameId:
  *                 type: integer
  *     responses:
  *       201:
  *         description: Покупка совершена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Purchase'
+ *       409:
+ *         description: Игра уже куплена
  */
-router.post('/', auth, createPurchase);
-
-/**
- * @swagger
- * /api/purchases:
- *   get:
- *     summary: Получить свои покупки
- *     tags: [Purchases]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Массив покупок
- */
-router.get('/', auth, getUserPurchases);
+router.post('/', auth, buyGame);
 
 module.exports = router;

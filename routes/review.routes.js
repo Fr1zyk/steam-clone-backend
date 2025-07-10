@@ -1,40 +1,39 @@
 // routes/review.routes.js
-const Router = require('express').Router;
-const {
-    createReview,
-    getGameReviews,
-    updateReview,
-    deleteReview
-} = require('../controllers/review.controller');
-const auth = require('../middleware/auth.middleware');
-
-const router = new Router();
+const router = require('express').Router();
+const auth   = require('../middleware/auth.middleware');
+const { getByGame, leave } = require('../controllers/review.controller');
 
 /**
  * @swagger
  * tags:
  *   name: Reviews
- *   description: Отзывы и рейтинги игр
+ *   description: Отзывы и рейтинг
  */
 
 /**
  * @swagger
- * /api/reviews/{gameId}:
+ * /api/reviews:
  *   get:
  *     summary: Получить отзывы по игре
  *     tags: [Reviews]
  *     parameters:
- *       - in: path
+ *       - in: query
  *         name: gameId
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID игры
+ *         description: ID игры для фильтрации
  *     responses:
  *       200:
- *         description: Массив отзывов
+ *         description: Список отзывов
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Review'
  */
-router.get('/:gameId', getGameReviews);
+router.get('/', getByGame);
 
 /**
  * @swagger
@@ -49,73 +48,15 @@ router.get('/:gameId', getGameReviews);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - gameId
- *               - rating
- *               - text
- *             properties:
- *               gameId:
- *                 type: integer
- *               rating:
- *                 type: integer
- *               text:
- *                 type: string
+ *             $ref: '#/components/schemas/ReviewInput'
  *     responses:
  *       201:
  *         description: Отзыв создан
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Review'
  */
-router.post('/', auth, createReview);
-
-/**
- * @swagger
- * /api/reviews/{id}:
- *   put:
- *     summary: Обновить свой отзыв
- *     tags: [Reviews]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               rating:
- *                 type: integer
- *               text:
- *                 type: string
- *     responses:
- *       200:
- *         description: Отзыв обновлён
- */
-router.put('/:id', auth, updateReview);
-
-/**
- * @swagger
- * /api/reviews/{id}:
- *   delete:
- *     summary: Удалить свой отзыв
- *     tags: [Reviews]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       204:
- *         description: Отзыв удалён
- */
-router.delete('/:id', auth, deleteReview);
+router.post('/', auth, leave);
 
 module.exports = router;
