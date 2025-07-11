@@ -1,7 +1,9 @@
-
+// config/swagger.js
 const path         = require('path');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi    = require('swagger-ui-express');
+
+const serverUrl = process.env.SWAGGER_SERVER_URL || `http://localhost:${process.env.PORT||5000}`;
 
 const options = {
     definition: {
@@ -12,7 +14,7 @@ const options = {
             description: 'Документация REST API для Steam Clone',
         },
         servers: [
-            { url: `http://localhost:${process.env.PORT||5000}`, description: 'Local server' }
+            { url: serverUrl, description: 'API server' }
         ],
         components: {
             securitySchemes: {
