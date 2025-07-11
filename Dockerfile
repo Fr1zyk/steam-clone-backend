@@ -2,6 +2,8 @@
 
 FROM node:18-alpine
 
+ENV NODE_ENV=production
+
 WORKDIR /app
 
 # 1) копируем package.json + lockfile
@@ -18,5 +20,5 @@ COPY . .
 # 5) открываем порт
 EXPOSE 5000
 
-# 6) запускаем dev-скрипт (nodemon + ваш app.js со Swagger)
-CMD ["npm", "run", "dev"]
+# 6) запускаем приложение в production
+CMD ["npm", "start"]

@@ -12,7 +12,7 @@ const options = {
             description: 'Документация REST API для Steam Clone',
         },
         servers: [
-            { url: `http://localhost:${process.env.PORT||5000}`, description: 'Local server' }
+            { url: process.env.SERVER_URL || `http://localhost:${process.env.PORT||5000}`, description: 'API server' }
         ],
         components: {
             securitySchemes: {
