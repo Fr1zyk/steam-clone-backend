@@ -1,15 +1,16 @@
-FROM node:18-alpine
-
-ENV NODE_ENV=production
+FROM node:20-alpine
 
 WORKDIR /app
 
-# 1) копируем package.json + lockfile
+# Install dependencies first to leverage caching
 COPY package*.json ./
+RUN npm install --only=production || npm install
 
+# Copy source
 COPY . .
 
+# Health check deps (optional)
 EXPOSE 5000
 
-# 6) запускаем приложение в production
-CMD ["npm", "start"]
+# Start server directly by file path to avoid script path weirdness
+CMD ["node","app.js"]

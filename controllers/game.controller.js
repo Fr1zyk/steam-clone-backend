@@ -1,67 +1,36 @@
-// controllers/game.controller.js
+const { Op } = require('sequelize');
 const { Game } = require('../models');
 
-/**
- * GET /api/games
- */
-exports.getAllGames = async (req, res, next) => {
-    try {
-        const games = await Game.findAll();
-        res.json(games);
-    } catch (err) {
-        next(err);
-    }
+exports.list = async (req, res) => {
+    const { q, genre, sort='id', order='ASC', limit=50, offset=0 } = req.query;
+    const where = {};
+    if (q) where.title = { [Op.iLike]: `%${q}%` };
+    if (genre) where.genre = genre;
+    const games = await Game.findAll({ where, order: [[sort, order]], limit: +limit, offset: +offset });
+    res.json(games);
 };
 
-/**
- * GET /api/games/:id
- */
-exports.getGameById = async (req, res, next) => {
-    try {
-        const game = await Game.findByPk(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
-        res.json(game);
-    } catch (err) {
-        next(err);
-    }
+exports.get = async (req, res) => {
+    const game = await Game.findByPk(req.params.id);
+    if (!game) return res.status(404).json({ message: 'Not found' });
+    res.json(game);
 };
 
-/**
- * POST /api/games
- */
-exports.createGame = async (req, res, next) => {
-    try {
-        const g = await Game.create(req.body);
-        res.status(201).json(g);
-    } catch (err) {
-        next(err);
-    }
+exports.create = async (req, res) => {
+    const game = await Game.create(req.body);
+    res.status(201).json(game);
 };
 
-/**
- * PUT /api/games/:id
- */
-exports.updateGame = async (req, res, next) => {
-    try {
-        const game = await Game.findByPk(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
-        await game.update(req.body);
-        res.json(game);
-    } catch (err) {
-        next(err);
-    }
+exports.update = async (req, res) => {
+    const game = await Game.findByPk(req.params.id);
+    if (!game) return res.status(404).json({ message: 'Not found' });
+    await game.update(req.body);
+    res.json(game);
 };
 
-/**
- * DELETE /api/games/:id
- */
-exports.deleteGame = async (req, res, next) => {
-    try {
-        const game = await Game.findByPk(req.params.id);
-        if (!game) return res.status(404).json({ error: 'Game not found' });
-        await game.destroy();
-        res.json({ message: 'Deleted' });
-    } catch (err) {
-        next(err);
-    }
+exports.remove = async (req, res) => {
+    const game = await Game.findByPk(req.params.id);
+    if (!game) return res.status(404).json({ message: 'Not found' });
+    await game.destroy();
+    res.json({ ok: true });
 };

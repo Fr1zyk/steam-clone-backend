@@ -1,29 +1,20 @@
 const { Notification } = require('../models');
 
-/**
- * GET /api/notifications
- */
-exports.list = async (req, res, next) => {
-    try {
-        const notes = await Notification.findAll({
-            where: { userId: req.user.id },
-            order: [['createdAt','DESC']]
-        });
-        res.json(notes);
-    } catch (err) {
-        next(err);
-    }
+exports.my = async (req, res) => {
+    const list = await Notification.findAll({ where: { userId: req.user.id } });
+    res.json(list);
 };
 
-/**
- * PUT /api/notifications/:id/read
- */
-exports.markRead = async (req, res, next) => {
-    try {
-        const n = await Notification.findByPk(req.params.id);
-        n.read = true; await n.save();
-        res.json(n);
-    } catch (err) {
-        next(err);
-    }
+exports.create = async (req, res) => {
+    const { userId, text } = req.body;
+    const n = await Notification.create({ userId, text });
+    res.status(201).json(n);
+};
+
+exports.read = async (req, res) => {
+    const { id } = req.params;
+    const n = await Notification.findByPk(id);
+    if (!n || n.userId !== req.user.id) return res.status(404).json({ message: 'Not found' });
+    await n.update({ read: true });
+    res.json(n);
 };

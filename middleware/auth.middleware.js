@@ -1,15 +1,13 @@
-// middleware/auth.middleware.js
 const jwt = require('jsonwebtoken');
-
 module.exports = (req, res, next) => {
-    const h = req.headers.authorization;
-    if (!h) return res.status(401).json({ error: 'No token' });
-    const token = h.split(' ')[1];
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ message: 'No token' });
     try {
-        const p = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = p;
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = payload;
         next();
-    } catch {
-        res.status(403).json({ error: 'Invalid token' });
+    } catch (e) {
+        return res.status(401).json({ message: 'Invalid token' });
     }
 };

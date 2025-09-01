@@ -1,32 +1,14 @@
-// controllers/review.controller.js
-const { Review, User } = require('../models');
+const { Review, Game } = require('../models');
 
-/**
- * GET /api/reviews?gameId=…
- */
-exports.getByGame = async (req, res, next) => {
-    try {
-        const gameId = parseInt(req.query.gameId);
-        const list = await Review.findAll({
-            where: { gameId },
-            include: [{ model: User, attributes: ['id','nickname'] }],
-            order: [['createdAt','DESC']]
-        });
-        res.json(list);
-    } catch (err) {
-        next(err);
-    }
+exports.forGame = async (req, res) => {
+    const list = await Review.findAll({ where: { gameId: req.params.gameId } });
+    res.json(list);
 };
 
-/**
- * POST /api/reviews
- */
-exports.leave = async (req, res, next) => {
-    try {
-        const { gameId, rating, comment } = req.body;
-        const review = await Review.create({ userId: req.user.id, gameId, rating, comment });
-        res.status(201).json(review);
-    } catch (err) {
-        next(err);
-    }
+exports.create = async (req, res) => {
+    const { gameId, rating, comment } = req.body;
+    const existsGame = await Game.findByPk(gameId);
+    if (!existsGame) return res.status(400).json({ message: 'Game not found' });
+    const review = await Review.create({ userId: req.user.id, gameId, rating, comment });
+    res.status(201).json(review);
 };

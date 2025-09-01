@@ -1,32 +1,16 @@
-// controllers/purchase.controller.js
 const { Purchase, Game } = require('../models');
 
-/**
- * GET /api/purchases
- */
-exports.getMyPurchases = async (req, res, next) => {
-    try {
-        const list = await Purchase.findAll({
-            where: { userId: req.user.id },
-            include: [{ model: Game, attributes: ['id','title','price'] }]
-        });
-        res.json(list);
-    } catch (err) {
-        next(err);
-    }
+exports.buy = async (req, res) => {
+    const { gameId } = req.body;
+    const game = await Game.findByPk(gameId);
+    if (!game) return res.status(400).json({ message: 'Game not found' });
+    const exists = await Purchase.findOne({ where: { userId: req.user.id, gameId } });
+    if (exists) return res.status(400).json({ message: 'Already owned' });
+    const p = await Purchase.create({ userId: req.user.id, gameId });
+    res.status(201).json(p);
 };
 
-/**
- * POST /api/purchases
- */
-exports.buyGame = async (req, res, next) => {
-    try {
-        const { gameId } = req.body;
-        const exists = await Purchase.findOne({ where: { userId: req.user.id, gameId } });
-        if (exists) return res.status(409).json({ error: 'Already purchased' });
-        const p = await Purchase.create({ userId: req.user.id, gameId });
-        res.status(201).json(p);
-    } catch (err) {
-        next(err);
-    }
+exports.my = async (req, res) => {
+    const list = await Purchase.findAll({ where: { userId: req.user.id } });
+    res.json(list);
 };

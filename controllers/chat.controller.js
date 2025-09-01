@@ -1,33 +1,20 @@
-const { Chat } = require('../models');
+const { Chat, User } = require('../models');
 
-/**
- * GET /api/chat?with=USER_ID
- */
-exports.get = async (req, res, next) => {
-    try {
-        const withId = parseInt(req.query.with);
-        const msgs = await Chat.findAll({
-            where: {
-                fromId: [req.user.id, withId],
-                toId:   [req.user.id, withId]
-            },
-            order: [['createdAt','ASC']]
-        });
-        res.json(msgs);
-    } catch (err) {
-        next(err);
-    }
+exports.send = async (req, res) => {
+    const { toId, message } = req.body;
+    if (!toId || !message) return res.status(400).json({ message: 'toId and message required' });
+    const to = await User.findByPk(toId);
+    if (!to) return res.status(404).json({ message: 'Recipient not found' });
+    const m = await Chat.create({ fromId: req.user.id, toId, message });
+    res.status(201).json(m);
 };
 
-/**
- * POST /api/chat
- */
-exports.send = async (req, res, next) => {
-    try {
-        const { toId, message } = req.body;
-        const m = await Chat.create({ fromId: req.user.id, toId, message });
-        res.status(201).json(m);
-    } catch (err) {
-        next(err);
-    }
+exports.inbox = async (req, res) => {
+    const msgs = await Chat.findAll({ where: { toId: req.user.id } });
+    res.json(msgs);
+};
+
+exports.sent = async (req, res) => {
+    const msgs = await Chat.findAll({ where: { fromId: req.user.id } });
+    res.json(msgs);
 };
